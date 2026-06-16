@@ -1,0 +1,43 @@
+name: Auto OTA Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PlatformIO
+        run: pip install -U platformio
+
+      - name: Build Firmware
+        run: pio run -e esp32dev
+
+      - name: Publish Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ".pio/build/esp32dev/firmware.bin"
+          tag: "latest"
+          name: "Latest Auto-Build"
+          allowUpdates: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Mosquitto Clients
+        run: sudo apt-get update && sudo apt-get install -y mosquitto-clients
+
+      - name: Trigger ESP32 OTA via MQTT
+        run: mosquitto_pub -h broker.hivemq.com -t "kth_matrix/my_secret_id/ota" -m "https://github.com/michioD/led-matrix-esp32/releases/download/latest/firmware.bin"
