@@ -365,9 +365,9 @@ void renderHeart() {
 }
 
 
-// --- Animation State Management ---
-String currentAnimation = "heart"; 
-const long frameInterval = 100; // Adjust for overall animation speed
+// // --- Animation State Management ---
+// String currentAnimation = "heart"; 
+// const long frameInterval = 100; // Adjust for overall animation speed
 
 // Variables for custom message
 String customMessage = "Waiting for message...";
@@ -519,9 +519,9 @@ void loop() {
     previousMillis = currentMillis;
 
     switch(currentAnim) {
-      case 0: renderBday(); break;
-      case 1: renderChiikawa(); break;
-      case 2: renderHachiware(); break;
+      case 0: renderHachiware(); break;
+      case 1: renderBday(); break;
+      case 2: renderChiikawa(); break;
       case 3: renderPacman(); break;
       case 4: renderKiss(); break;
       case 5: renderHeart(); break;
