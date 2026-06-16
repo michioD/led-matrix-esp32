@@ -471,7 +471,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (topicStr == mqtt_topic_brightness) {
     int brightnessValue = messageTemp.toInt();
     if (brightnessValue >= 0 && brightnessValue <= 255) {
-      matrix->setBrightness(brightnessValue);
+      // matrix->setBrightness(brightnessValue);
+      FastLED.setBrightness(brightnessValue);
     }
   }
 }
