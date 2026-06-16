@@ -1,7 +1,0 @@
-include/
-lib/
-old-versions/
-README.md
-src/
-test/
-platformio.ini
