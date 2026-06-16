@@ -20,6 +20,7 @@ const char* mqtt_server = "broker.hivemq.com";
 const char* mqtt_topic_anim = "kth_matrix/my_secret_id/anim";
 const char* mqtt_topic_msg = "kth_matrix/my_secret_id/message";
 const char* mqtt_topic_ota = "kth_matrix/my_secret_id/ota";
+const char* mqtt_topic_brightness = "kth_matrix/my_secret_id/brightness";
 
 
 WiFiClient espClient;
@@ -467,6 +468,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   else if (topicStr == mqtt_topic_anim) {
     currentAnim = messageTemp.toInt();
+  } else if (topicStr == mqtt_topic_brightness) {
+    int brightnessValue = messageTemp.toInt();
+    if (brightnessValue >= 0 && brightnessValue <= 255) {
+      matrix->setBrightness(brightnessValue);
+    }
   }
 }
 
@@ -476,6 +482,7 @@ void reconnect() {
       client.subscribe(mqtt_topic_anim);
       client.subscribe(mqtt_topic_msg);
       client.subscribe(mqtt_topic_ota);
+      client.subscribe(mqtt_topic_brightness);
     } else {
       delay(5000);
     }
