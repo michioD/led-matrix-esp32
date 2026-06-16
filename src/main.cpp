@@ -21,7 +21,7 @@ const char* mqtt_topic_anim = "kth_matrix/my_secret_id/anim";
 const char* mqtt_topic_msg = "kth_matrix/my_secret_id/message";
 const char* mqtt_topic_ota = "kth_matrix/my_secret_id/ota";
 const char* mqtt_topic_brightness = "kth_matrix/my_secret_id/brightness";
-
+const char* mqtt_topic_ack = "kth_matrix/my_secret_id/ack";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -300,38 +300,6 @@ void renderPacman() {
   }
 }
 
-// void renderKiss() {
-//   matrix->fillScreen(matrix->Color(0, 0, 0)); 
-//   uint16_t colorPerson1 = matrix->Color(0, 150, 255); 
-//   uint16_t colorPerson2 = matrix->Color(255, 0, 150); 
-//   uint16_t colorHeart   = matrix->Color(255, 0, 0);   
-  
-//   int leftX, rightX;
-//   bool showHeart = false;
-  
-//   if (frame < 5) {
-//     leftX = -4 + frame;        
-//     rightX = 12 - frame;      
-//   } else if (frame >= 5 && frame < 15) {
-//     leftX = 0;
-//     rightX = 8;
-//     showHeart = (frame % 2 == 0); 
-//   } else {
-//     leftX = 0 - (frame - 15);
-//     rightX = 8 + (frame - 15);
-//   }
-  
-//   matrix->drawBitmap(leftX, 8, person_left, 8, 8, colorPerson1);
-//   matrix->drawBitmap(rightX, 8, person_right, 8, 8, colorPerson2);
-  
-//   if (showHeart) {
-//     matrix->drawBitmap(4, 0, heart_bmp, 8, 8, colorHeart);
-//   }
-  
-//   matrix->show(); 
-//   frame++;
-//   if (frame > 20) frame = 0;
-// }
 
 void renderKiss() {
   matrix->fillScreen(matrix->Color(0, 0, 0)); 
@@ -450,6 +418,33 @@ void performOTA(const String& firmwareUrl) {
   }
 }
 
+// void callback(char* topic, byte* payload, unsigned int length) {
+//   String messageTemp;
+//   for (int i = 0; i < length; i++) {
+//     messageTemp += (char)payload[i];
+//   }
+  
+//   String topicStr = String(topic);
+
+//   if (topicStr == mqtt_topic_msg) {
+//     customMessage = messageTemp;
+//     messageCursorX = 16; 
+//     currentAnim = 99; // Assume 99 is the ID for renderMessage
+//   } 
+//   else if (topicStr == mqtt_topic_ota) {
+//     performOTA(messageTemp);
+//   }
+//   else if (topicStr == mqtt_topic_anim) {
+//     currentAnim = messageTemp.toInt();
+//   } else if (topicStr == mqtt_topic_brightness) {
+//     int brightnessValue = messageTemp.toInt();
+//     if (brightnessValue >= 0 && brightnessValue <= 255) {
+//       // matrix->setBrightness(brightnessValue);
+//       FastLED.setBrightness(brightnessValue);
+//     }
+//   }
+// }
+
 void callback(char* topic, byte* payload, unsigned int length) {
   String messageTemp;
   for (int i = 0; i < length; i++) {
@@ -461,18 +456,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (topicStr == mqtt_topic_msg) {
     customMessage = messageTemp;
     messageCursorX = 16; 
-    currentAnim = 99; // Assume 99 is the ID for renderMessage
+    currentAnim = 99; 
+    client.publish(mqtt_topic_ack, "ACK: Message received and rendering");
   } 
   else if (topicStr == mqtt_topic_ota) {
+    client.publish(mqtt_topic_ack, "ACK: OTA sequence initiated");
     performOTA(messageTemp);
   }
   else if (topicStr == mqtt_topic_anim) {
     currentAnim = messageTemp.toInt();
-  } else if (topicStr == mqtt_topic_brightness) {
+    client.publish(mqtt_topic_ack, "ACK: Animation updated");
+  } 
+  else if (topicStr == mqtt_topic_brightness) {
     int brightnessValue = messageTemp.toInt();
     if (brightnessValue >= 0 && brightnessValue <= 255) {
-      // matrix->setBrightness(brightnessValue);
       FastLED.setBrightness(brightnessValue);
+      client.publish(mqtt_topic_ack, "ACK: Brightness adjusted");
+    } else {
+      client.publish(mqtt_topic_ack, "ERROR: Brightness value out of bounds (0-255)");
     }
   }
 }
