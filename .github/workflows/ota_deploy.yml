@@ -23,6 +23,16 @@ jobs:
       - name: Install PlatformIO
         run: pip install -U platformio
 
+      - name: Cache PlatformIO dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            .pio
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
       - name: Build Firmware
         run: pio run -e esp32dev
 
