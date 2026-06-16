@@ -488,7 +488,7 @@ void setup() {
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   matrix->begin();
   matrix->setTextWrap(false);
-  matrix->setBrightness(40);
+  matrix->setBrightness(20);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
