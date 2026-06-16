@@ -49,5 +49,9 @@ jobs:
       - name: Install Mosquitto Clients
         run: sudo apt-get update && sudo apt-get install -y mosquitto-clients
 
+      # - name: Trigger ESP32 OTA via MQTT
+      #   run: mosquitto_pub -h broker.hivemq.com -t "kth_matrix/my_secret_id/ota" -m "https://github.com/michioD/led-matrix-esp32/releases/download/latest/firmware.bin" 
       - name: Trigger ESP32 OTA via MQTT
-        run: mosquitto_pub -h broker.hivemq.com -t "kth_matrix/my_secret_id/ota" -m "https://github.com/michioD/led-matrix-esp32/releases/download/latest/firmware.bin"
+        run: |
+          sleep 10
+          mosquitto_pub -h broker.hivemq.com -t "kth_matrix/my_secret_id/ota" -m "https://github.com/michioD/led-matrix-esp32/releases/download/latest/firmware.bin"
