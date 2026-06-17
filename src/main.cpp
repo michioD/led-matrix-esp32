@@ -22,6 +22,7 @@ const char* mqtt_topic_msg = "kth_matrix/my_secret_id/message";
 const char* mqtt_topic_ota = "kth_matrix/my_secret_id/ota";
 const char* mqtt_topic_brightness = "kth_matrix/my_secret_id/brightness";
 const char* mqtt_topic_ack = "kth_matrix/my_secret_id/ack";
+const char* mqtt_topic_live = "kth_matrix/my_secret_id/live";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -475,7 +476,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       client.publish(mqtt_topic_ack, "ERROR: Brightness value out of bounds (0-255)");
     }
-  }
+  }else if (topicStr == mqtt_topic_live && length == 768) {
+    currentAnim = -1;
+    for (int i = 0; i < 256; i++){
+      int x = i % 16;
+      int y = i / 16;
+      matrix->drawPixel(x, y, matrix->Color(payload[i*3], payload[i*3+1], payload[i*3+2]));
+    }
+    matrix->show();
+    }
 }
 
 void reconnect() {
@@ -485,6 +494,7 @@ void reconnect() {
       client.subscribe(mqtt_topic_msg);
       client.subscribe(mqtt_topic_ota);
       client.subscribe(mqtt_topic_brightness);
+      client.subscribe(mqtt_topic_live);
     } else {
       delay(5000);
     }
