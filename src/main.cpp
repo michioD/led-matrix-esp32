@@ -12,6 +12,7 @@
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
+#include <SPIFFS.h>
 
 #define WIFI_SSID "IZZI-A94E"
 #define WIFI_PASSWORD "FZYWCJNWZNML"
@@ -44,6 +45,32 @@ FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, MATRIX_W, MATRIX_H,
 unsigned long previousMillis = 0;
 int frame = 0;
 int cursorX = 16;
+int currentAnim = 0;
+
+void saveState() {
+  File file = SPIFFS.open("/state.bin", FILE_WRITE);
+  if (file) {
+    file.write((uint8_t*)&currentAnim, sizeof(currentAnim));
+    if (currentAnim == -1) {
+      file.write((uint8_t*)leds, NUM_LEDS * sizeof(CRGB));
+    }
+    file.close();
+  }
+}
+
+void loadState() {
+  if (SPIFFS.exists("/state.bin")) {
+    File file = SPIFFS.open("/state.bin", FILE_READ);
+    if (file) {
+      file.read((uint8_t*)&currentAnim, sizeof(currentAnim));
+      if (currentAnim == -1) {
+        file.read((uint8_t*)leds, NUM_LEDS * sizeof(CRGB));
+        matrix->show();
+      }
+      file.close();
+    }
+  }
+}
 
 const uint8_t ghost_bmp[] PROGMEM = {
   0b00111100, 0b01111110, 0b11011011, 0b11111111,
@@ -373,7 +400,6 @@ void renderHeart() {
 // Variables for custom message
 String customMessage = "Waiting for message...";
 int messageCursorX = 16;
-int currentAnim = 0;
 
 void renderMessage() {
   matrix->fillScreen(matrix->Color(0, 0, 0));
@@ -466,6 +492,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   else if (topicStr == mqtt_topic_anim) {
     currentAnim = messageTemp.toInt();
+    saveState();
     client.publish(mqtt_topic_ack, "ACK: Animation updated");
   } 
   else if (topicStr == mqtt_topic_brightness) {
@@ -476,15 +503,30 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
       client.publish(mqtt_topic_ack, "ERROR: Brightness value out of bounds (0-255)");
     }
-  }else if (topicStr == mqtt_topic_live && length == 768) {
-    currentAnim = -1;
-    for (int i = 0; i < 256; i++){
-      int x = i % 16;
-      int y = i / 16;
-      matrix->drawPixel(x, y, matrix->Color(payload[i*3], payload[i*3+1], payload[i*3+2]));
+  }else if (topicStr == mqtt_topic_live) {
+    if (length == 768) {
+      // Full frame update
+      currentAnim = -1;
+      for (int i = 0; i < 256; i++){
+        int x = i % 16;
+        int y = i / 16;
+        matrix->drawPixel(x, y, matrix->Color(payload[i*3], payload[i*3+1], payload[i*3+2]));
+      }
+      matrix->show();
+      saveState();
+    } else if (length == 4) {
+      // Single pixel update [index, R, G, B]
+      currentAnim = -1;
+      int index = (uint8_t)payload[0];
+      int r = (uint8_t)payload[1];
+      int g = (uint8_t)payload[2];
+      int b = (uint8_t)payload[3];
+      int x = index % 16;
+      int y = index / 16;
+      matrix->drawPixel(x, y, matrix->Color(r, g, b));
+      matrix->show();
     }
-    matrix->show();
-    }
+  }
 }
 
 void reconnect() {
@@ -504,10 +546,16 @@ void reconnect() {
 void setup() {
   Serial.begin(115200);
   
+  if(!SPIFFS.begin(true)){
+    Serial.println("SPIFFS Mount Failed");
+  }
+
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   matrix->begin();
   matrix->setTextWrap(false);
   matrix->setBrightness(20);
+
+  loadState();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
@@ -529,6 +577,7 @@ void loop() {
     previousMillis = currentMillis;
 
     switch(currentAnim) {
+      case -1: /* Live Drawing Mode: Do not clear or redraw */ break;
       case 0: renderHachiware(); break;
       case 1: renderBday(); break;
       case 2: renderChiikawa(); break;
