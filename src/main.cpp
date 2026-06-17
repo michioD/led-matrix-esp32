@@ -514,6 +514,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       }
       matrix->show();
       saveState();
+      client.publish(mqtt_topic_ack, "ACK: Full frame received");
     } else if (length == 4) {
       // Single pixel update [index, R, G, B]
       currentAnim = -1;
@@ -525,6 +526,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       int y = index / 16;
       matrix->drawPixel(x, y, matrix->Color(r, g, b));
       matrix->show();
+      client.publish(mqtt_topic_ack, "ACK: Pixel updated");
     }
   }
 }
