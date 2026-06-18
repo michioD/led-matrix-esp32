@@ -139,7 +139,7 @@ matrix->setTextColor(matrix->Color(255, 20, 147));
 
 matrix->setCursor(cursorX, 4);
 
-matrix->print("Good Morning mi amor");
+matrix->print("Happy Birthday Mi Amor");
 
 matrix->show();
 
@@ -177,15 +177,6 @@ void renderChiikawa() {
 
   matrix->show(); 
 }
-
-// 1. Define Color Masks 
-// The image has been translated into three 1-bit layers to save memory.
-// const uint8_t hachiware_blue[] PROGMEM = {
-//   0x00, 0x00, 0x00, 0x00, 0x10, 0x10, 0x18, 0x30, // Rows 0-3
-//   0x1E, 0xF0, 0x78, 0x1C, 0x70, 0x1C, 0x00, 0x00, // Rows 4-7
-//   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Rows 8-11
-//   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // Rows 12-15
-// };
 
 const uint8_t hachiware_blue[] PROGMEM = {
   0b00000000, 0b00000000, // Row 0
@@ -371,14 +362,6 @@ void renderKiss() {
   }
 }
 
-// void renderHeart() {
-//   matrix->fillScreen(matrix->Color(0, 0, 0)); 
-//   uint8_t pulse = beatsin8(50, 0, 255); 
-//   uint16_t pulseColor = matrix->Color(255, pulse, pulse);   
-//   matrix->drawBitmap(0, 0, big_heart, 16, 16, pulseColor);
-//   matrix->show(); 
-// }
-
 void renderHeart() {
   matrix->fillScreen(matrix->Color(0, 0, 0)); 
   
@@ -392,12 +375,6 @@ void renderHeart() {
   matrix->show();
 }
 
-
-// // --- Animation State Management ---
-// String currentAnimation = "heart"; 
-// const long frameInterval = 100; // Adjust for overall animation speed
-
-// Variables for custom message
 String customMessage = "Waiting for message...";
 int messageCursorX = 16;
 
@@ -444,33 +421,6 @@ void performOTA(const String& firmwareUrl) {
       break;
   }
 }
-
-// void callback(char* topic, byte* payload, unsigned int length) {
-//   String messageTemp;
-//   for (int i = 0; i < length; i++) {
-//     messageTemp += (char)payload[i];
-//   }
-  
-//   String topicStr = String(topic);
-
-//   if (topicStr == mqtt_topic_msg) {
-//     customMessage = messageTemp;
-//     messageCursorX = 16; 
-//     currentAnim = 99; // Assume 99 is the ID for renderMessage
-//   } 
-//   else if (topicStr == mqtt_topic_ota) {
-//     performOTA(messageTemp);
-//   }
-//   else if (topicStr == mqtt_topic_anim) {
-//     currentAnim = messageTemp.toInt();
-//   } else if (topicStr == mqtt_topic_brightness) {
-//     int brightnessValue = messageTemp.toInt();
-//     if (brightnessValue >= 0 && brightnessValue <= 255) {
-//       // matrix->setBrightness(brightnessValue);
-//       FastLED.setBrightness(brightnessValue);
-//     }
-//   }
-// }
 
 void callback(char* topic, byte* payload, unsigned int length) {
   String messageTemp;
@@ -559,11 +509,15 @@ void setup() {
 
   loadState();
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
+  // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  // }
 
+  wifiMulti.addAP("IZZI-A94E", "FZYWCJNWZNML");
+  wifiMulti.addAP("IZZI-A94E-5G", "FZYWCJNWZNML");
+  wifiMulti.addAP("Foo","12345678");
+  wifiMulti.run();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 }
