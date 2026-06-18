@@ -509,20 +509,29 @@ void setup() {
 
   loadState();
 
-  // WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  // while (WiFi.status() != WL_CONNECTED) {
-  //   delay(500);
-  // }
-
+  WiFi.mode(WIFI_STA);
   wifiMulti.addAP("IZZI-A94E", "FZYWCJNWZNML");
   wifiMulti.addAP("IZZI-A94E-5G", "FZYWCJNWZNML");
   wifiMulti.addAP("Foo","12345678");
-  wifiMulti.run();
+
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 }
 
 void loop() {
+  if (wifiMulti.run() != WL_CONNECTED) {
+    static unsigned long lastBlink = 0;
+    if (millis() - lastBlink >= 500) {
+      lastBlink = millis();
+      static bool state = false;
+      state = !state;
+      matrix->fillScreen(0);
+      matrix->drawPixel(15, 0, state ? matrix->Color(255, 0, 0) : matrix->Color(0, 0, 0));
+      matrix->show();
+    }
+    return;
+  }
+
   if (!client.connected()) {
     reconnect();
   }
