@@ -510,8 +510,12 @@ void setup() {
   loadState();
 
   WiFi.mode(WIFI_STA);
+  WiFi.setSleep(false);
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
   wifiMulti.addAP("IZZI-A94E", "FZYWCJNWZNML");
-  wifiMulti.addAP("IZZI-A94E-5G", "FZYWCJNWZNML");
+  wifiMulti.addAP("IZZI-A94E_EXT", "FZYWCJNWZNML");
+
+  // wifiMulti.addAP("IZZI-A94E-5G", "FZYWCJNWZNML");
   wifiMulti.addAP("Foo","12345678");
 
   client.setServer(mqtt_server, 1883);
@@ -519,6 +523,7 @@ void setup() {
 }
 
 void loop() {
+  // red light blinking when not connected, KEEP THIS LOGIC
   if (wifiMulti.run() != WL_CONNECTED) {
     static unsigned long lastBlink = 0;
     if (millis() - lastBlink >= 500) {
