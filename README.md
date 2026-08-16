@@ -1,4 +1,4 @@
-An embedded systems project implementing a robust Wi-Fi connected 16x16 WS2812B LED matrix. The firmware is built on the ESP32 platform using PlatformIO, leveraging MQTT for real-time remote control and Secure Over-The-Air (OTA) capabilities for remote fleet management.
+An embedded systems project implementing a robust Wi-Fi connected 16x16 WS2812B LED matrix. The firmware is built on the ESP32 platform using PlatformIO, leveraging MQTT for real-time remote control and Secure Over-The-Air (OTA) capabilities for remote management.
 
 ## System Architecture
 
