@@ -43,10 +43,39 @@ The device listens to a predefined set of topics on the HiveMQ broker (`broker.h
 ### Configuration
 MQTT broker topics are defined as constants at the top of `src/main.cpp` and should be updated to match your environment. Update the Wi-Fi credentials and Root CA certificate directly in the source code before compiling.
 
-### Compiling and Uploading Firmware
+### Compiling and Uploading Firmware (Manual USB)
 Build the firmware and upload it via USB:
 ```bash
 pio run --target upload
+```
+
+### CI/CD Pipeline & Automated OTA Deployment
+This project features a fully automated Continuous Integration and Continuous Deployment (CI/CD) pipeline powered by **GitHub Actions**. 
+
+Whenever changes to the source code (`src/main.cpp`) are pushed to the `main` branch:
+1. **Cloud Build:** The workflow automatically sets up PlatformIO and compiles the firmware in the cloud. PlatformIO dependencies are cached to ensure fast build times.
+2. **Release Generation:** The compiled `firmware.bin` is automatically published as a GitHub Release tagged as `latest`.
+3. **Automated Trigger:** The pipeline runs a Mosquitto client to publish the URL of the new firmware to the ESP32's `.../ota` MQTT topic.
+4. **OTA Update:** The ESP32 receives the MQTT message, securely downloads the new binary directly from GitHub, and flashes itself over Wi-Fi without any physical intervention.
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub Actions
+    participant MQTT as HiveMQ Broker
+    participant ESP as ESP32 Matrix
+    
+    Dev->>GH: Push commit to main
+    activate GH
+    GH->>GH: Compile firmware.bin
+    GH->>GH: Publish Release
+    GH->>MQTT: Publish OTA URL
+    deactivate GH
+    MQTT->>ESP: Forward OTA URL
+    activate ESP
+    ESP->>GH: Download firmware.bin
+    ESP->>ESP: Flash & Reboot
+    deactivate ESP
 ```
 
 ## Design Decisions and Trade-offs
